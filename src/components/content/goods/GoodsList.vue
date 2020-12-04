@@ -29,6 +29,8 @@
     flex-wrap: wrap;
     justify-content: space-around;/*均等分*/
     padding: 2px;
+
+    background-color: #fff;
   }
 
 </style>

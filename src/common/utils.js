@@ -1,4 +1,4 @@
-export function debounce(func, delay) { // 防抖动函数
+export function debounce(func, delay=100) { // 防抖动函数
   let timer = null
   return function (...args) { // ...表示可以传多个参数
     if(timer) clearTimeout(timer)
@@ -9,6 +9,7 @@ export function debounce(func, delay) { // 防抖动函数
   }
 }
 
+// 正则表达式进行日期格式化：字符串匹配利器
 export function formatDate(date, fmt) {
   if (/(y+)/.test(fmt)) {
     fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
@@ -27,8 +28,12 @@ export function formatDate(date, fmt) {
     }
   }
   return fmt;
-};
+}
 
+// 补齐前置零
+/*
+* 如4h:4m:4s => 04:04:04
+* */
 function padLeftZero (str) {
   return ('00' + str).substr(str.length);
 };

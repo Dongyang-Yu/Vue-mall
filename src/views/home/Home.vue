@@ -45,6 +45,7 @@
     getHomeGoods,
   } from "@/network/home";
   import {debounce} from "@/common/utils";
+  import {itemListenerMixin} from "@/common/mixin";
 
   export default {
     name: "Home",
@@ -68,7 +69,11 @@
       this.$refs.scroll.refresh()
     },
     deactivated() {
+      // 1.保存Y值
       this.saveY = this.$refs.scroll.getScrollY()
+
+      // 2.取消全局事件的监听
+      this.$bus.$off('itemImgLoad', this.itemImgListener )
     },
     data() {
       return {
@@ -84,6 +89,7 @@
         tabOffsetTop: 0,
         isTabFixed: false,
         saveY: 0,
+        // itemImgListener: null,
       }
     },
     created() {
@@ -96,15 +102,22 @@
       this.getHomeGoodsFuc('sell');
 
     },
+    mixins: [itemListenerMixin],
     mounted() {
+/*
+  // 此处用mixin代替了
+      // 这个地方img标签确实被挂载，但是其中的图片还没有占据高度
       const refresh = debounce(this.$refs.scroll.refresh, 500) // 穿函数不加括号，否则传的就是函数的返回值
-      // 3.监听item中图片加载完成
-      this.$bus.$on('itemImageLoad', () => {
+      // 对监听的事件进行保存
+      this.itemImgListener = () => {
         refresh() // 调用防抖
-      })
+      }
+      // 3.监听item中图片加载完成
+      this.$bus.$on('itemImageLoad', this.itemImgListener)
+*/
 
-      // 4.获取tabControl的offsetTop
-      // 所有的组件都有一个属性$el:用于获取组件中的元素
+      // console.log(this.itemImgListener);
+
     },
     methods: {
       // 事件监听相关的方法
@@ -140,6 +153,7 @@
       },
       swiperImageLoad() {
         this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
+
       },
 
 
@@ -153,7 +167,6 @@
       getHomeGoodsFuc(type) {
         const page = this.goods[type].page + 1
         getHomeGoods(type, page).then(res => {
-          // console.log(res);
           this.goods[type].list.push(...res.data.list)
           this.goods[type].page += 1 // 更新页码
 

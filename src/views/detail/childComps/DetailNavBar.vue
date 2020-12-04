@@ -31,6 +31,7 @@
     methods: {
       titleClick(index) {
         this.currentIndex = index
+        this.$emit('titleClick', index)
       },
       backClick() {
         this.$router.go(-1);// -1相对于back
