@@ -9,7 +9,12 @@
       <detail-param-info  ref='paramsTopY' :param-info="paramInfo"></detail-param-info>
       <detail-comment-info ref="commentTopY" :comment-info="commentInfo"></detail-comment-info>
       <goods-list ref="recommendTopY" :goods="recommends"></goods-list>
+
     </scroll>
+    <detail-bottom-bar @addCart="addToCart"></detail-bottom-bar>
+
+    <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
+    <toast :message="message" :show="show"></toast>
   </div>
 </template>
 
@@ -21,13 +26,17 @@
   import DetailGoodsInfo from "./childComps/DetailGoodsInfo";
   import DetailParamInfo from "./childComps/DetailParamInfo";
   import DetailCommentInfo from "./childComps/DetailCommentInfo";
+  import DetailBottomBar from "./childComps/DetailBottomBar";
 
   import Scroll from "@/components/common/scroll/Scroll";
   import GoodsList from "@/components/content/goods/GoodsList";
+  import Toast from "@/components/common/toast/Toast";
+
 
   import {getDetail, Goods, Shop, GoodsParam, getRecommend} from "@/network/detail";
   import {debounce} from "@/common/utils";
-  import {itemListenerMixin} from "@/common/mixin";
+  import {itemListenerMixin, backTopMixin} from "@/common/mixin";
+  import {mapActions} from "vuex";
 
   export default {
     name: "Detail",
@@ -39,9 +48,11 @@
       DetailGoodsInfo,
       DetailParamInfo,
       DetailCommentInfo,
+      DetailBottomBar,
 
       Scroll,
       GoodsList,
+      Toast,
     },
     data() {
       return {
@@ -57,7 +68,9 @@
         themeTopYs: [],
         getThemeTopY: null,
         currentIndex: 0,
-
+        // toast 原装
+          message: '',
+          show: false,
       }
     },
     created() {
@@ -117,10 +130,9 @@
         this.themeTopYs.push(this.$refs.commentTopY.$el.offsetTop-44);
         this.themeTopYs.push(this.$refs.recommendTopY.$el.offsetTop-44);
         this.themeTopYs.push(Number.MAX_VALUE);
-
       }, 500)
     },
-    mixins: [itemListenerMixin],
+    mixins: [itemListenerMixin, backTopMixin],
     mounted() {
       // 获取tabControl的offsetTop
       // 所有的组件都有一个属性$el:用于获取组件中的元素
@@ -130,6 +142,7 @@
       this.$bus.$off('itemImageLoad', this.itemImgListener)
     },
     methods: {
+      ...mapActions(['addCart']),
       imageLoad() {
         this.$refs.scroll.refresh()
 
@@ -168,8 +181,36 @@
           }
         }
 
+        // 3.是否显示回到顶部
+        this.listenShowBackTop(position)
+      },
+      addToCart() {
+        // 1.获取购物车需要展示的信息
+        const product = {}
+        product.image = this.topImages[0]
+        product.title = this.goods.title
+        product.desc = this.goods.desc
+        product.price = this.goods.realPrice
+        product.iid = this.iid
 
-      }
+        // 2.将商品添加到购物车中
+        // this.$store.cartList.push(product) 需要调用vuex中mutations中的方法
+        // this.$store.commit( 'addCart', product)
+          // 通过actions来完成两件事
+        // this.$store.dispatch('addCart', product).then(res=>{
+        //   console.log(res);
+        // })
+        this.addCart(product).then(res=>{
+          // this.show = true
+          // this.message = res
+          // setTimeout(()=> {
+          //   this.show = false;
+          //   this.message = ''
+          // }, 1500)
+          this.$toast.show(res, 2000)
+        })
+
+      },
     }
   }
 </script>
@@ -187,6 +228,6 @@
     background-color: #fff;
   }
   .content {
-    height: calc(100% - 44px);
+    height: calc(100% - 44px - 49px);
   }
 </style>
